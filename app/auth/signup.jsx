@@ -1,19 +1,60 @@
+import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
+import { signup } from "../../services/auth";
 
 export default function SignUpScreen() {
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const router = useRouter();
+
+  const handleSignUp = async () => {
+    try {
+      console.log("Attempting signup...");
+      const response = await signup(username, email, password);
+  
+      console.log("Signup successful, navigating to home...");
+      router.push("/home");
+    } catch (error) {
+      console.error("Signup failed:", error);
+      setError(error.message || "Sign-up failed. Please try again.");
+    }
+  };
+  
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Create Your Account 🔥</Text>
       <Text style={styles.subtitle}>Join the messenger revolution 🚀</Text>
 
-      <TextInput style={styles.input} placeholder="Username" placeholderTextColor="#bbb" />
-      <TextInput style={styles.input} placeholder="Email" placeholderTextColor="#bbb" />
-      <TextInput style={styles.input} placeholder="Password" placeholderTextColor="#bbb" secureTextEntry />
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-      <TouchableOpacity style={styles.button}>
+      <TextInput
+        style={styles.input}
+        placeholder="Username"
+        placeholderTextColor="#bbb"
+        value={username}
+        onChangeText={setUsername}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Email"
+        placeholderTextColor="#bbb"
+        value={email}
+        onChangeText={setEmail}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Password"
+        placeholderTextColor="#bbb"
+        secureTextEntry
+        value={password}
+        onChangeText={setPassword}
+      />
+
+      <TouchableOpacity style={styles.button} onPress={handleSignUp}>
         <Text style={styles.buttonText}>Sign Up</Text>
       </TouchableOpacity>
 
@@ -71,5 +112,9 @@ const styles = StyleSheet.create({
   switchTextBold: {
     color: "#08D9D6",
     fontWeight: "bold",
+  },
+  errorText: {
+    color: "#FF4B2B",
+    marginBottom: 15,
   },
 });
