@@ -1,18 +1,48 @@
+import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
+import { login } from "../../services/auth";
 
 export default function SignInScreen() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const router = useRouter();
+
+  const handleSignIn = async () => {
+    try {
+      const response = await login(email, password);
+      // Save token and navigate to home
+      router.push("/home");
+    } catch (error) {
+      setError("Invalid credentials");
+    }
+  };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome Back! 🎉</Text>
       <Text style={styles.subtitle}>Login to continue the vibes 🚀</Text>
 
-      <TextInput style={styles.input} placeholder="Email" placeholderTextColor="#bbb" />
-      <TextInput style={styles.input} placeholder="Password" placeholderTextColor="#bbb" secureTextEntry />
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-      <TouchableOpacity style={styles.button}>
+      <TextInput
+        style={styles.input}
+        placeholder="Email"
+        placeholderTextColor="#bbb"
+        value={email}
+        onChangeText={setEmail}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Password"
+        placeholderTextColor="#bbb"
+        secureTextEntry
+        value={password}
+        onChangeText={setPassword}
+      />
+
+      <TouchableOpacity style={styles.button} onPress={handleSignIn}>
         <Text style={styles.buttonText}>Sign In</Text>
       </TouchableOpacity>
 
@@ -70,5 +100,9 @@ const styles = StyleSheet.create({
   switchTextBold: {
     color: "#FF4B2B",
     fontWeight: "bold",
+  },
+  errorText: {
+    color: "#FF4B2B",
+    marginBottom: 15,
   },
 });
