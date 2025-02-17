@@ -22,12 +22,12 @@ const HomeScreen = () => {
       </Text>
 
       {/* "Let's Chat" Button */}
-      <TouchableOpacity style={styles.primaryButton} onPress={() => router.push("/auth/signup")}>
+      <TouchableOpacity style={styles.primaryButton} onPress={() => router.push("/auth/SignUpPage")}>
         <Text style={styles.primaryButtonText}>Let's Chat 🎉</Text>
       </TouchableOpacity>
 
       {/* "Log In" Button */}
-      <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push("/auth/signin")}>
+      <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push("/auth/LoginPage")}>
         <Text style={styles.secondaryButtonText}>Already a user? Log in 🚀</Text>
       </TouchableOpacity>
     </View>
