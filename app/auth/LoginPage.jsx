@@ -1,96 +1,153 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Image, Alert } from "react-native";
-import { authService } from "../../services/authService"; // Importing the login function
+import { useState } from "react";
+import { View, Text, TextInput, TouchableOpacity, Image, ActivityIndicator, StyleSheet } from "react-native";
+import { useAuthStore } from "../services/useAuthStore";
+import { useThemeStore } from "../services/useThemeStore";
 import { useNavigation } from "@react-navigation/native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
 
 const LoginScreen = () => {
   const navigation = useNavigation();
-  const [formData, setFormData] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
 
-  const handleLogin = async () => {
-    if (!formData.email || !formData.password) {
-      Alert.alert("Error", "Please enter both email and password.");
-      return;
-    }
+  const { login, isLoggingIn } = useAuthStore();
+  const { theme } = useThemeStore();
 
-    setLoading(true);
-    try {
-      const userData = await authService.login(formData);
-      
-      // Save auth token (assuming it's returned from the backend)
-      if (userData.token) {
-        await AsyncStorage.setItem("authToken", userData.token);
-      }
+  const themeToLogoMap = {
+    light: require("../../public/logo_icon_black.png"),
+    dark: require("../../public/logo_icon_white.png"),
+    cupcake: require("../../public/logo_icon_black.png"),
+    synthwave: require("../../public/logo_icon_white.png"),
+    halloween: require("../../public/logo_icon_white.png"),
+    forest: require("../../public/logo_icon_white.png"),
+    aqua: require("../../public/logo_icon_white.png"),
+    black: require("../../public/logo_icon_white.png"),
+    luxury: require("../../public/logo_icon_white.png"),
+    dracula: require("../../public/logo_icon_white.png"),
+    night: require("../../public/logo_icon_white.png"),
+    coffee: require("../../public/logo_icon_white.png"),
+    sunset: require("../../public/logo_icon_white.png"),
+  };
 
-      Alert.alert("Success", "Logged in successfully!");
-      navigation.replace("Home"); // Navigate to Home after login
-    } catch (error) {
-      Alert.alert("Login Failed", error.message || "An error occurred.");
-    } finally {
-      setLoading(false);
-    }
+  const logoSrc = themeToLogoMap[theme] || require("../../public/logo_icon_white.png");
+
+  const handleSubmit = () => {
+    login(formData);
   };
 
   return (
-    <View style={{ flex: 1, justifyContent: "center", padding: 20, backgroundColor: "#fff" }}>
+    <View style={styles.container}>
       {/* Logo */}
-      <View style={{ alignItems: "center", marginBottom: 20 }}>
-        {/* <Image source={require("../assets/logo.png")} style={{ width: 80, height: 80 }} /> */}
-        <Text style={{ fontSize: 24, fontWeight: "bold", marginTop: 10 }}>Welcome Back</Text>
-        <Text style={{ color: "gray" }}>Sign in to your account</Text>
+      <View style={styles.logoContainer}>
+        <Image source={logoSrc} style={styles.logo} />
+        <Text style={styles.title}>Welcome Back</Text>
+        <Text style={styles.subtitle}>Sign in to your account</Text>
       </View>
 
-      {/* Email Input */}
-      <View style={{ marginBottom: 15 }}>
-        <Text style={{ fontWeight: "500" }}>Email</Text>
-        <View style={{ flexDirection: "row", alignItems: "center", borderBottomWidth: 1, borderColor: "#ccc", paddingVertical: 8 }}>
-          <Ionicons name="mail-outline" size={20} color="gray" style={{ marginRight: 10 }} />
-          <TextInput
-            placeholder="you@example.com"
-            value={formData.email}
-            onChangeText={(text) => setFormData({ ...formData, email: text })}
-            style={{ flex: 1, fontSize: 16 }}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-        </View>
-      </View>
+      {/* Form */}
+      <View style={styles.form}>
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          placeholderTextColor="#888"
+          value={formData.email}
+          onChangeText={(text) => setFormData({ ...formData, email: text })}
+        />
 
-      {/* Password Input */}
-      <View style={{ marginBottom: 20 }}>
-        <Text style={{ fontWeight: "500" }}>Password</Text>
-        <View style={{ flexDirection: "row", alignItems: "center", borderBottomWidth: 1, borderColor: "#ccc", paddingVertical: 8 }}>
-          <Ionicons name="lock-closed-outline" size={20} color="gray" style={{ marginRight: 10 }} />
-          <TextInput
-            placeholder="••••••••"
-            secureTextEntry={!showPassword}
-            value={formData.password}
-            onChangeText={(text) => setFormData({ ...formData, password: text })}
-            style={{ flex: 1, fontSize: 16 }}
-          />
-          <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-            <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color="gray" />
-          </TouchableOpacity>
-        </View>
-      </View>
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          placeholderTextColor="#888"
+          secureTextEntry={!showPassword}
+          value={formData.password}
+          onChangeText={(text) => setFormData({ ...formData, password: text })}
+        />
 
-      {/* Login Button */}
-      <TouchableOpacity onPress={handleLogin} style={{ backgroundColor: "#007bff", padding: 12, borderRadius: 8, alignItems: "center" }}>
-        {loading ? <ActivityIndicator color="#fff" /> : <Text style={{ color: "#fff", fontWeight: "bold", fontSize: 16 }}>Sign In</Text>}
-      </TouchableOpacity>
+        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+          <Text style={styles.toggleText}>{showPassword ? "Hide Password" : "Show Password"}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.button} onPress={handleSubmit} disabled={isLoggingIn}>
+          {isLoggingIn ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Sign In</Text>
+          )}
+        </TouchableOpacity>
+      </View>
 
       {/* Signup Link */}
-      <TouchableOpacity onPress={() => router.push("/auth/SignUpPage")} style={{ marginTop: 15, alignItems: "center" }}>
-        <Text style={{ color: "#007bff" }}>Don't have an account? Create one</Text>
+      <TouchableOpacity onPress={() => navigation.navigate("Signup")}>
+        <Text style={styles.signupText}>
+          Don't have an account? <Text style={styles.signupLink}>Create Account</Text>
+        </Text>
       </TouchableOpacity>
     </View>
   );
 };
 
 export default LoginScreen;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+    backgroundColor: "#f5f5f5",
+  },
+  logoContainer: {
+    alignItems: "center",
+    marginBottom: 30,
+  },
+  logo: {
+    width: 80,
+    height: 80,
+    resizeMode: "contain",
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginTop: 10,
+  },
+  subtitle: {
+    color: "#888",
+  },
+  form: {
+    width: "100%",
+  },
+  input: {
+    width: "100%",
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    marginBottom: 10,
+    backgroundColor: "#fff",
+  },
+  toggleText: {
+    textAlign: "right",
+    color: "#007bff",
+    marginBottom: 10,
+  },
+  button: {
+    backgroundColor: "#007bff",
+    padding: 14,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
+  signupText: {
+    marginTop: 20,
+    color: "#888",
+  },
+  signupLink: {
+    color: "#007bff",
+    fontWeight: "bold",
+  },
+});
