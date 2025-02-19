@@ -1,108 +1,197 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
-import { authService } from "../../services/authService"; // Importing the signup function
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+  StyleSheet,
+} from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useAuthStore } from "../services/useAuthStore";
+import { useThemeStore } from "../services/useThemeStore";
+import Toast from "react-native-toast-message";
+import { Eye, EyeOff, Lock, Mail, User } from "lucide-react-native";
 
-const SignupScreen = () => {
+const SignUpPage = () => {
   const navigation = useNavigation();
-  const [formData, setFormData] = useState({ fullName: "", email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    password: "",
+  });
 
-  const handleSignup = async () => {
-    if (!formData.fullName || !formData.email || !formData.password) {
-      Alert.alert("Error", "Please fill all fields.");
-      return;
-    }
-    if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      Alert.alert("Error", "Invalid email format.");
-      return;
-    }
-    if (formData.password.length < 6) {
-      Alert.alert("Error", "Password must be at least 6 characters.");
-      return;
-    }
+  const { signup, isSigningUp } = useAuthStore();
+  const { theme } = useThemeStore();
 
-    setLoading(true);
-    try {
-      const userData = await authService.signup(formData);
-      if (userData.token) {
-        await AsyncStorage.setItem("authToken", userData.token);
-      }
-      Alert.alert("Success", "Account created successfully!");
-      navigation.replace("Home");
-    } catch (error) {
-      Alert.alert("Signup Failed", error.message || "An error occurred.");
-    } finally {
-      setLoading(false);
-    }
+  const themeToLogoMap = {
+    light: require("../../public/logo_icon_black.png"),
+    dark: require("../../public/logo_icon_white.png"),
+  };
+
+  const logoSrc = themeToLogoMap[theme] || require("../../public/logo_icon_white.png");
+
+  const validateForm = () => {
+    if (!formData.fullName.trim()) return Toast.show({ type: "error", text1: "Full name is required" });
+    if (!formData.email.trim()) return Toast.show({ type: "error", text1: "Email is required" });
+    if (!/\S+@\S+\.\S+/.test(formData.email)) return Toast.show({ type: "error", text1: "Invalid email format" });
+    if (!formData.password) return Toast.show({ type: "error", text1: "Password is required" });
+    if (formData.password.length < 6) return Toast.show({ type: "error", text1: "Password must be at least 6 characters" });
+
+    return true;
+  };
+
+  const handleSubmit = () => {
+    if (validateForm()) signup(formData);
   };
 
   return (
-    <View style={{ flex: 1, justifyContent: "center", padding: 20, backgroundColor: "#fff" }}>
-      <View style={{ alignItems: "center", marginBottom: 20 }}>
-        <Text style={{ fontSize: 24, fontWeight: "bold", marginTop: 10 }}>Create Account</Text>
-        <Text style={{ color: "gray" }}>Join us today!</Text>
-      </View>
-
-      <View style={{ marginBottom: 15 }}>
-        <Text style={{ fontWeight: "500" }}>Full Name</Text>
-        <View style={{ flexDirection: "row", alignItems: "center", borderBottomWidth: 1, borderColor: "#ccc", paddingVertical: 8 }}>
-          <Ionicons name="person-outline" size={20} color="gray" style={{ marginRight: 10 }} />
-          <TextInput
-            placeholder="John Doe"
-            value={formData.fullName}
-            onChangeText={(text) => setFormData({ ...formData, fullName: text })}
-            style={{ flex: 1, fontSize: 16 }}
-          />
+    <View style={styles.container}>
+      {/* Left Side - Form */}
+      <View style={styles.formContainer}>
+        {/* Logo */}
+        <View style={styles.logoContainer}>
+          <Image source={logoSrc} style={styles.logo} />
+          <Text style={styles.title}>Create Account</Text>
+          <Text style={styles.subtitle}>Get started with your free account</Text>
         </View>
-      </View>
 
-      <View style={{ marginBottom: 15 }}>
-        <Text style={{ fontWeight: "500" }}>Email</Text>
-        <View style={{ flexDirection: "row", alignItems: "center", borderBottomWidth: 1, borderColor: "#ccc", paddingVertical: 8 }}>
-          <Ionicons name="mail-outline" size={20} color="gray" style={{ marginRight: 10 }} />
-          <TextInput
-            placeholder="you@example.com"
-            value={formData.email}
-            onChangeText={(text) => setFormData({ ...formData, email: text })}
-            style={{ flex: 1, fontSize: 16 }}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
+        {/* Form */}
+        <View style={styles.inputContainer}>
+          {/* Full Name */}
+          <View style={styles.inputWrapper}>
+            <User size={20} color="#666" style={styles.icon} />
+            <TextInput
+              style={styles.input}
+              placeholder="Full Name"
+              value={formData.fullName}
+              onChangeText={(text) => setFormData({ ...formData, fullName: text })}
+            />
+          </View>
+
+          {/* Email */}
+          <View style={styles.inputWrapper}>
+            <Mail size={20} color="#666" style={styles.icon} />
+            <TextInput
+              style={styles.input}
+              placeholder="you@example.com"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={formData.email}
+              onChangeText={(text) => setFormData({ ...formData, email: text })}
+            />
+          </View>
+
+          {/* Password */}
+          <View style={styles.inputWrapper}>
+            <Lock size={20} color="#666" style={styles.icon} />
+            <TextInput
+              style={styles.input}
+              placeholder="••••••••"
+              secureTextEntry={!showPassword}
+              value={formData.password}
+              onChangeText={(text) => setFormData({ ...formData, password: text })}
+            />
+            <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
+              {showPassword ? <EyeOff size={20} color="#666" /> : <Eye size={20} color="#666" />}
+            </TouchableOpacity>
+          </View>
         </View>
+
+        {/* Sign Up Button */}
+        <TouchableOpacity style={styles.button} onPress={handleSubmit} disabled={isSigningUp}>
+          {isSigningUp ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.buttonText}>Create Account</Text>}
+        </TouchableOpacity>
+
+        {/* Already have an account */}
+        <TouchableOpacity onPress={() => navigation.navigate("Login")} style={styles.linkContainer}>
+          <Text style={styles.linkText}>Already have an account? <Text style={styles.link}>Sign in</Text></Text>
+        </TouchableOpacity>
       </View>
-
-      <View style={{ marginBottom: 20 }}>
-        <Text style={{ fontWeight: "500" }}>Password</Text>
-        <View style={{ flexDirection: "row", alignItems: "center", borderBottomWidth: 1, borderColor: "#ccc", paddingVertical: 8 }}>
-          <Ionicons name="lock-closed-outline" size={20} color="gray" style={{ marginRight: 10 }} />
-          <TextInput
-            placeholder="••••••••"
-            secureTextEntry={!showPassword}
-            value={formData.password}
-            onChangeText={(text) => setFormData({ ...formData, password: text })}
-            style={{ flex: 1, fontSize: 16 }}
-          />
-          <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-            <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color="gray" />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <TouchableOpacity onPress={handleSignup} style={{ backgroundColor: "#007bff", padding: 12, borderRadius: 8, alignItems: "center" }}>
-        {loading ? <ActivityIndicator color="#fff" /> : <Text style={{ color: "#fff", fontWeight: "bold", fontSize: 16 }}>Sign Up</Text>}
-      </TouchableOpacity>
-
-      <TouchableOpacity onPress={() => router.push("/auth/LoginPage")} style={{ marginTop: 15, alignItems: "center" }}>
-        <Text style={{ color: "#007bff" }}>Already have an account? Sign in</Text>
-      </TouchableOpacity>
     </View>
   );
 };
 
-export default SignupScreen;
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    padding: 20,
+  },
+  formContainer: {
+    alignItems: "center",
+    width: "100%",
+  },
+  logoContainer: {
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  logo: {
+    width: 60,
+    height: 60,
+    marginBottom: 10,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  subtitle: {
+    fontSize: 14,
+    color: "#666",
+  },
+  inputContainer: {
+    width: "100%",
+    marginBottom: 20,
+  },
+  inputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f1f1f1",
+    paddingHorizontal: 15,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  icon: {
+    marginRight: 10,
+  },
+  input: {
+    flex: 1,
+    height: 50,
+    fontSize: 16,
+    color: "#333",
+  },
+  eyeIcon: {
+    position: "absolute",
+    right: 15,
+  },
+  button: {
+    width: "100%",
+    backgroundColor: "#007bff",
+    paddingVertical: 15,
+    borderRadius: 8,
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  buttonText: {
+    fontSize: 16,
+    color: "#fff",
+    fontWeight: "bold",
+  },
+  linkContainer: {
+    marginTop: 10,
+  },
+  linkText: {
+    fontSize: 14,
+    color: "#666",
+  },
+  link: {
+    color: "#007bff",
+    fontWeight: "bold",
+  },
+});
+
+export default SignUpPage;
