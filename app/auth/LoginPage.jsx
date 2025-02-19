@@ -1,17 +1,17 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Image, Alert } from "react-native";
-import { authService } from "../../services/authService"; // Importing the login function
-import { useNavigation } from "@react-navigation/native";
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
+import { useAuthStore } from "../../services/useAuthStore"; // Importing the login function
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 
 const LoginScreen = () => {
-  const navigation = useNavigation();
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { login } = useAuthStore(); // ✅ Correct way to call Zustand store
+
 
   const handleLogin = async () => {
     if (!formData.email || !formData.password) {
@@ -21,15 +21,15 @@ const LoginScreen = () => {
 
     setLoading(true);
     try {
-      const userData = await authService.login(formData);
-      
+      const userData = await login(formData);
+
       // Save auth token (assuming it's returned from the backend)
       if (userData.token) {
         await AsyncStorage.setItem("authToken", userData.token);
       }
 
       Alert.alert("Success", "Logged in successfully!");
-      navigation.replace("Home"); // Navigate to Home after login
+      router.replace("/screens/Home"); // ✅ Fixed Navigation Issue
     } catch (error) {
       Alert.alert("Login Failed", error.message || "An error occurred.");
     } finally {
@@ -41,7 +41,6 @@ const LoginScreen = () => {
     <View style={{ flex: 1, justifyContent: "center", padding: 20, backgroundColor: "#fff" }}>
       {/* Logo */}
       <View style={{ alignItems: "center", marginBottom: 20 }}>
-        {/* <Image source={require("../assets/logo.png")} style={{ width: 80, height: 80 }} /> */}
         <Text style={{ fontSize: 24, fontWeight: "bold", marginTop: 10 }}>Welcome Back</Text>
         <Text style={{ color: "gray" }}>Sign in to your account</Text>
       </View>

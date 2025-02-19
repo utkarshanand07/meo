@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
-import { authService } from "../../services/authService"; // Importing the signup function
+import { useAuthStore } from "../../services/useAuthStore";// Importing the signup function
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
@@ -29,7 +29,7 @@ const SignupScreen = () => {
 
     setLoading(true);
     try {
-      const userData = await authService.signup(formData);
+      const userData = await useAuthStore.signup(formData);
       if (userData.token) {
         await AsyncStorage.setItem("authToken", userData.token);
       }
