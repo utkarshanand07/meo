@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { Alert } from "react-native";
-import { axiosInstance } from "../lib/axios";
+import { axiosInstance } from "../../app/lib/axios";
 import { useAuthStore } from "./useAuthStore";
 
 export const useChatStore = create((set, get) => ({

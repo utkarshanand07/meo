@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
-import { useAuthStore } from "../services/useAuthStore";
+import { useAuthStore } from "../assets/services/useAuthStore";
 
 const HomeScreen = () => {
   const router = useRouter();
@@ -27,6 +27,21 @@ const HomeScreen = () => {
 
       <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push("/auth/LoginPage")}>
         <Text style={styles.secondaryButtonText}>Already a user? Log in 🚀</Text>
+      </TouchableOpacity>
+
+      {/* "Home" Button */}
+      <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push("/screens/HomeScreen")}>
+        <Text style={styles.secondaryButtonText}>Home</Text>
+      </TouchableOpacity>
+
+      {/* "Profile" Button */}
+      <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push("/screens/ProfileScreen")}>
+        <Text style={styles.secondaryButtonText}>Profile</Text>
+      </TouchableOpacity>
+
+      {/* "Chat" Button */}
+      <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push("/screens/ChatScreen")}>
+        <Text style={styles.secondaryButtonText}>Chat</Text>
       </TouchableOpacity>
     </View>
   );
